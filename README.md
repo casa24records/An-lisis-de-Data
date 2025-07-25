@@ -16,11 +16,10 @@ A clean, intuitive analytics dashboard for tracking artist performance across Sp
 ```
 DVISUAL/
 ├── index.html                 # Main dashboard interface
-├── css/
-│   └── styles.css            # Responsive styling
-├── js/
-│   ├── dashboard.js          # Main application logic
-│   └── data-processor.js     # Data loading and processing
+├── style.css                  # Responsive styling
+├── dashboard.js               # Main application logic
+├── data-processor.js          # Data loading and processing
+├── generate-manifest.py       # Helper script for file manifest
 ├── data/
 │   ├── historical/           # Your existing JSON files (2025-04-26.json, etc.)
 │   └── popularity_scores.csv # Optional CSV data
@@ -38,17 +37,15 @@ DVISUAL/
 
 ### 2. File Organization
 
-Create the folder structure and add the provided files:
+All files should be in the root directory of your repository:
 
-```bash
-# Create directories
-mkdir -p css js
+- `index.html` - Main dashboard
+- `style.css` - Styling
+- `dashboard.js` - Main logic
+- `data-processor.js` - Data handling
+- `generate-manifest.py` - Optional helper script
 
-# Add the files
-# - Copy index.html to root
-# - Copy styles.css to css/
-# - Copy dashboard.js and data-processor.js to js/
-```
+Your data files should remain in the `data/historical/` folder as they are.
 
 ### 3. Running the Dashboard
 
@@ -107,7 +104,7 @@ The dashboard expects JSON files in `data/historical/` with this structure:
 
 ### Colors
 
-Edit the CSS variables in `styles.css`:
+Edit the CSS variables in `style.css`:
 
 ```css
 :root {
