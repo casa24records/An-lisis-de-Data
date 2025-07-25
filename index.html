@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVISUAL - Artist Analytics Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1>DVISUAL Artist Analytics</h1>
+            <div class="artist-selector">
+                <label for="artistSelect">Select Artist:</label>
+                <select id="artistSelect">
+                    <option value="">Loading artists...</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview Cards -->
+            <section class="metrics-grid" id="metricsGrid">
+                <div class="metric-card">
+                    <h3>Spotify Followers</h3>
+                    <div class="metric-value" id="spotifyFollowers">--</div>
+                    <div class="metric-change" id="spotifyFollowersChange">--</div>
+                </div>
+                <div class="metric-card">
+                    <h3>YouTube Subscribers</h3>
+                    <div class="metric-value" id="youtubeSubscribers">--</div>
+                    <div class="metric-change" id="youtubeSubscribersChange">--</div>
+                </div>
+                <div class="metric-card">
+                    <h3>YouTube Total Views</h3>
+                    <div class="metric-value" id="youtubeTotalViews">--</div>
+                    <div class="metric-change" id="youtubeTotalViewsChange">--</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Popularity Score</h3>
+                    <div class="metric-value" id="popularityScore">--</div>
+                    <div class="metric-change" id="popularityScoreChange">--</div>
+                </div>
+            </section>
+
+            <!-- Time Range Selector -->
+            <section class="controls-section">
+                <div class="time-range-selector">
+                    <button class="time-range-btn active" data-range="all">All Time</button>
+                    <button class="time-range-btn" data-range="90">90 Days</button>
+                    <button class="time-range-btn" data-range="30">30 Days</button>
+                    <button class="time-range-btn" data-range="7">7 Days</button>
+                </div>
+                <div class="last-updated">
+                    Last updated: <span id="lastUpdated">--</span>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-grid">
+                <!-- Followers Growth Chart -->
+                <div class="chart-card">
+                    <h3>Followers Growth</h3>
+                    <canvas id="followersChart"></canvas>
+                </div>
+
+                <!-- YouTube Metrics Chart -->
+                <div class="chart-card" id="youtubeChartCard">
+                    <h3>YouTube Performance</h3>
+                    <canvas id="youtubeChart"></canvas>
+                    <div class="no-data-message" id="youtubeNoData" style="display: none;">
+                        <p>No YouTube data available for this artist</p>
+                    </div>
+                </div>
+
+                <!-- Popularity Trend Chart -->
+                <div class="chart-card">
+                    <h3>Popularity Trend</h3>
+                    <canvas id="popularityChart"></canvas>
+                </div>
+
+                <!-- Monthly Listeners Chart (if available) -->
+                <div class="chart-card" id="monthlyListenersCard" style="display: none;">
+                    <h3>Monthly Listeners</h3>
+                    <canvas id="monthlyListenersChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Top Tracks Section -->
+            <section class="top-tracks-section" id="topTracksSection">
+                <h3>Top Tracks</h3>
+                <div class="tracks-grid" id="tracksGrid">
+                    <!-- Tracks will be populated dynamically -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <p>Loading artist data...</p>
+        </div>
+    </div>
+
+    <script src="js/data-processor.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
