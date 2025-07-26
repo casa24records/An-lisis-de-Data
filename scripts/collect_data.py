@@ -73,11 +73,6 @@ artists = [
         'name': 'ARANDA',
         'spotify_id': '7DFovnGo8GZX5PuEyXh6LV',
         'youtube_id': None,
-    },
-     {
-        'name': 'Casa 24 Beats',
-        'spotify_id': 'None',
-        'youtube_id': 'UCg3IuQwjIBbkvEbDVJZd8VQ' ,
     }
 ]
 
