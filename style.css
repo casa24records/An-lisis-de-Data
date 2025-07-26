@@ -119,12 +119,33 @@ h1, h2, h3, h4 {
     margin: 0 auto;
 }
 
-/* Stat Grid */
+/* Stat Grid - Dynamic layout */
 .stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-bottom: var(--spacing-xl);
+    transition: grid-template-columns 0.3s ease;
+}
+
+/* Adjust grid based on number of items */
+.stat-grid:has(> :nth-child(5)) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat-grid:has(> :nth-child(3):last-child) {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.stat-grid:has(> :nth-child(2):last-child) {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.stat-grid:has(> :nth-child(1):last-child) {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Stat Box - Matching main dashboard */
@@ -263,12 +284,22 @@ h1, h2, h3, h4 {
     font-size: 0.875rem;
 }
 
-/* Charts Grid */
+/* Charts Grid - Dynamic layout */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 1.5rem;
     margin-bottom: var(--spacing-xl);
+    transition: all 0.3s ease;
+}
+
+/* Dynamic chart grid adjustments */
+.charts-grid:has(.chart-card:not([style*="display: none"]):nth-child(1):last-child) {
+    grid-template-columns: 1fr;
+}
+
+.charts-grid:has(.chart-card:not([style*="display: none"]):nth-child(2):last-child) {
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .chart-card {
@@ -288,6 +319,15 @@ h1, h2, h3, h4 {
     transform: translate(-50%, -50%);
     text-align: center;
     color: var(--text-secondary);
+}
+
+/* Platform sections */
+.platform-section {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.platform-section.hidden {
+    display: none !important;
 }
 
 /* Top Tracks Section */
@@ -509,7 +549,7 @@ h1, h2, h3, h4 {
     }
     
     .charts-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: var(--spacing-md);
     }
     
@@ -521,7 +561,7 @@ h1, h2, h3, h4 {
 /* Tablet Responsive Design */
 @media (min-width: 769px) and (max-width: 1024px) {
     .charts-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
     
     .stat-grid {
@@ -551,4 +591,10 @@ h1, h2, h3, h4 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
+}
+
+/* Ensure charts handle null data properly */
+canvas {
+    max-width: 100%;
+    height: auto !important;
 }
