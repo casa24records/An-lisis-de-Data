@@ -1,4 +1,4 @@
-// Dashboard Module
+// Dashboard Module - Complete rewrite with dynamic section visibility
 const Dashboard = {
     // Chart instances
     charts: {
@@ -12,10 +12,11 @@ const Dashboard = {
     state: {
         currentArtist: null,
         currentTimeRange: 'all',
-        data: null
+        data: null,
+        platformAvailability: null
     },
 
-    // Chart.js default configuration - Updated to match retro theme
+    // Chart.js default configuration
     chartDefaults: {
         responsive: true,
         maintainAspectRatio: false,
@@ -104,7 +105,9 @@ const Dashboard = {
                     }
                 }
             }
-        }
+        },
+        // Handle null values properly
+        spanGaps: true
     },
 
     // Initialize the dashboard
@@ -195,13 +198,21 @@ const Dashboard = {
                     transform: translateY(0);
                 }
             }
+            
+            /* Hidden sections */
+            .platform-section {
+                transition: opacity 0.3s ease, max-height 0.3s ease;
+            }
+            
+            .platform-section.hidden {
+                display: none !important;
+            }
         `;
         document.head.appendChild(style);
     },
 
     // Format artist names with proper spacing
     formatArtistName(name) {
-        // Special case for Casa 24Beats
         if (name === 'Casa 24Beats') {
             return 'Casa 24 Beats';
         }
@@ -244,6 +255,10 @@ const Dashboard = {
 
         this.state.currentArtist = artistName;
         this.state.data = DataProcessor.processArtistData(artistName, this.state.currentTimeRange);
+        this.state.platformAvailability = this.state.data.platformAvailability;
+        
+        // Update UI visibility based on available data
+        this.updateSectionVisibility();
         
         // Add fade-in animation
         const main = document.querySelector('.dashboard-main');
@@ -253,6 +268,134 @@ const Dashboard = {
         this.updateMetricsCards();
         this.updateCharts();
         this.updateTopTracks();
+    },
+
+    // Update section visibility based on platform availability
+    updateSectionVisibility() {
+        const availability = this.state.platformAvailability;
+        
+        // Update metric cards
+        this.updateMetricCardVisibility();
+        
+        // Update chart visibility
+        const followersChart = document.querySelector('[data-chart="followers"]');
+        const youtubeChart = document.getElementById('youtubeChartCard');
+        const popularityChart = document.querySelector('[data-chart="popularity"]');
+        const monthlyListenersChart = document.getElementById('monthlyListenersCard');
+        const topTracksSection = document.getElementById('topTracksSection');
+        
+        // Show/hide Spotify sections
+        if (followersChart) {
+            followersChart.style.display = availability.hasSpotify ? 'block' : 'none';
+        }
+        
+        if (popularityChart) {
+            popularityChart.style.display = availability.hasSpotify ? 'block' : 'none';
+        }
+        
+        if (topTracksSection) {
+            topTracksSection.style.display = availability.hasSpotify ? 'block' : 'none';
+        }
+        
+        // Show/hide YouTube sections
+        if (youtubeChart) {
+            youtubeChart.style.display = availability.hasYouTube ? 'block' : 'none';
+        }
+        
+        // Show/hide monthly listeners chart
+        if (monthlyListenersChart) {
+            monthlyListenersChart.style.display = availability.hasMonthlyListeners ? 'block' : 'none';
+        }
+        
+        // Adjust grid layout based on visible items
+        this.adjustGridLayout();
+    },
+
+    // Update metric card visibility
+    updateMetricCardVisibility() {
+        const availability = this.state.platformAvailability;
+        const metricsGrid = document.getElementById('metricsGrid');
+        
+        // Clear existing cards
+        metricsGrid.innerHTML = '';
+        
+        // Add Spotify followers card if available
+        if (availability.hasSpotify) {
+            metricsGrid.appendChild(this.createMetricCard(
+                'Spotify Followers',
+                'spotifyFollowers',
+                '#1DB954'
+            ));
+        }
+        
+        // Add YouTube subscribers card if available
+        if (availability.hasYouTube) {
+            metricsGrid.appendChild(this.createMetricCard(
+                'YouTube Subscribers',
+                'youtubeSubscribers',
+                '#FF0000'
+            ));
+            
+            metricsGrid.appendChild(this.createMetricCard(
+                'YouTube Total Views',
+                'youtubeTotalViews',
+                '#FF0000'
+            ));
+        }
+        
+        // Add popularity score if Spotify is available
+        if (availability.hasSpotify) {
+            metricsGrid.appendChild(this.createMetricCard(
+                'Popularity Score',
+                'popularityScore',
+                '#9B59B6',
+                true // isScore
+            ));
+        }
+        
+        // Add monthly listeners if available
+        if (availability.hasMonthlyListeners) {
+            metricsGrid.appendChild(this.createMetricCard(
+                'Monthly Listeners',
+                'monthlyListeners',
+                '#1DB954'
+            ));
+        }
+    },
+
+    // Create a metric card element
+    createMetricCard(title, metricId, dotColor, isScore = false) {
+        const card = document.createElement('div');
+        card.className = 'metric-card stat-box';
+        
+        card.innerHTML = `
+            <h3>${title}</h3>
+            <div class="stat-content">
+                <div class="stat-dot" style="background: ${dotColor}"></div>
+                <div class="metric-value stat-value">
+                    <span id="${metricId}">--</span>
+                    ${isScore ? '<span class="text-xl ml-1">/100</span>' : ''}
+                </div>
+            </div>
+            <div class="metric-change" id="${metricId}Change">--</div>
+        `;
+        
+        return card;
+    },
+
+    // Adjust grid layout based on visible items
+    adjustGridLayout() {
+        const chartsGrid = document.querySelector('.charts-grid');
+        const visibleCharts = chartsGrid.querySelectorAll('.chart-card:not([style*="display: none"])');
+        
+        // Adjust grid columns based on number of visible charts
+        if (visibleCharts.length === 1) {
+            chartsGrid.style.gridTemplateColumns = '1fr';
+        } else if (visibleCharts.length === 2) {
+            chartsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        } else {
+            chartsGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(400px, 1fr))';
+        }
     },
 
     // Select time range
@@ -276,71 +419,94 @@ const Dashboard = {
         const data = this.state.data;
         if (!data) return;
 
-        // Spotify Followers
-        const spotifyFollowers = document.getElementById('spotifyFollowers');
-        const spotifyFollowersChange = document.getElementById('spotifyFollowersChange');
-        spotifyFollowers.textContent = DataProcessor.formatNumber(data.latestMetrics.spotifyFollowers);
-        
-        const followerChange = DataProcessor.calculateChange(
-            data.latestMetrics.spotifyFollowers,
-            data.previousMetrics.spotifyFollowers
-        );
-        this.updateChangeElement(spotifyFollowersChange, followerChange);
+        const availability = this.state.platformAvailability;
 
-        // YouTube Subscribers
-        const youtubeSubscribers = document.getElementById('youtubeSubscribers');
-        const youtubeSubscribersChange = document.getElementById('youtubeSubscribersChange');
-        
-        if (data.hasYouTubeData) {
-            youtubeSubscribers.textContent = DataProcessor.formatNumber(data.latestMetrics.youtubeSubscribers);
-            const subChange = DataProcessor.calculateChange(
-                data.latestMetrics.youtubeSubscribers,
-                data.previousMetrics.youtubeSubscribers
-            );
-            this.updateChangeElement(youtubeSubscribersChange, subChange);
-        } else {
-            youtubeSubscribers.textContent = 'N/A';
-            youtubeSubscribersChange.textContent = 'No data';
-            youtubeSubscribersChange.className = 'metric-change neutral';
+        // Update Spotify Followers
+        if (availability.hasSpotify) {
+            const spotifyFollowers = document.getElementById('spotifyFollowers');
+            const spotifyFollowersChange = document.getElementById('spotifyFollowersChange');
+            
+            if (spotifyFollowers) {
+                spotifyFollowers.textContent = DataProcessor.formatNumber(data.latestMetrics.spotifyFollowers);
+                
+                const followerChange = DataProcessor.calculateChange(
+                    data.latestMetrics.spotifyFollowers,
+                    data.previousMetrics.spotifyFollowers
+                );
+                this.updateChangeElement(spotifyFollowersChange, followerChange);
+            }
         }
 
-        // YouTube Total Views
-        const youtubeTotalViews = document.getElementById('youtubeTotalViews');
-        const youtubeTotalViewsChange = document.getElementById('youtubeTotalViewsChange');
-        
-        if (data.hasYouTubeData) {
-            youtubeTotalViews.textContent = DataProcessor.formatNumber(data.latestMetrics.youtubeTotalViews);
-            const viewChange = DataProcessor.calculateChange(
-                data.latestMetrics.youtubeTotalViews,
-                data.previousMetrics.youtubeTotalViews
-            );
-            this.updateChangeElement(youtubeTotalViewsChange, viewChange);
-        } else {
-            youtubeTotalViews.textContent = 'N/A';
-            youtubeTotalViewsChange.textContent = 'No data';
-            youtubeTotalViewsChange.className = 'metric-change neutral';
+        // Update YouTube metrics
+        if (availability.hasYouTube) {
+            const youtubeSubscribers = document.getElementById('youtubeSubscribers');
+            const youtubeSubscribersChange = document.getElementById('youtubeSubscribersChange');
+            
+            if (youtubeSubscribers) {
+                youtubeSubscribers.textContent = DataProcessor.formatNumber(data.latestMetrics.youtubeSubscribers);
+                const subChange = DataProcessor.calculateChange(
+                    data.latestMetrics.youtubeSubscribers,
+                    data.previousMetrics.youtubeSubscribers
+                );
+                this.updateChangeElement(youtubeSubscribersChange, subChange);
+            }
+
+            const youtubeTotalViews = document.getElementById('youtubeTotalViews');
+            const youtubeTotalViewsChange = document.getElementById('youtubeTotalViewsChange');
+            
+            if (youtubeTotalViews) {
+                youtubeTotalViews.textContent = DataProcessor.formatNumber(data.latestMetrics.youtubeTotalViews);
+                const viewChange = DataProcessor.calculateChange(
+                    data.latestMetrics.youtubeTotalViews,
+                    data.previousMetrics.youtubeTotalViews
+                );
+                this.updateChangeElement(youtubeTotalViewsChange, viewChange);
+            }
         }
 
-        // Popularity Score
-        const popularityScore = document.getElementById('popularityScore');
-        const popularityScoreChange = document.getElementById('popularityScoreChange');
-        popularityScore.textContent = data.latestMetrics.popularityScore;
-        
-        const popChange = data.latestMetrics.popularityScore - data.previousMetrics.popularityScore;
-        if (popChange > 0) {
-            popularityScoreChange.textContent = `+${popChange} pts`;
-            popularityScoreChange.className = 'metric-change positive';
-        } else if (popChange < 0) {
-            popularityScoreChange.textContent = `${popChange} pts`;
-            popularityScoreChange.className = 'metric-change negative';
-        } else {
-            popularityScoreChange.textContent = 'No change';
-            popularityScoreChange.className = 'metric-change neutral';
+        // Update Popularity Score
+        if (availability.hasSpotify) {
+            const popularityScore = document.getElementById('popularityScore');
+            const popularityScoreChange = document.getElementById('popularityScoreChange');
+            
+            if (popularityScore) {
+                popularityScore.textContent = data.latestMetrics.popularityScore;
+                
+                const popChange = data.latestMetrics.popularityScore - data.previousMetrics.popularityScore;
+                if (popChange > 0) {
+                    popularityScoreChange.textContent = `+${popChange} pts`;
+                    popularityScoreChange.className = 'metric-change positive';
+                } else if (popChange < 0) {
+                    popularityScoreChange.textContent = `${popChange} pts`;
+                    popularityScoreChange.className = 'metric-change negative';
+                } else {
+                    popularityScoreChange.textContent = 'No change';
+                    popularityScoreChange.className = 'metric-change neutral';
+                }
+            }
+        }
+
+        // Update Monthly Listeners
+        if (availability.hasMonthlyListeners) {
+            const monthlyListeners = document.getElementById('monthlyListeners');
+            const monthlyListenersChange = document.getElementById('monthlyListenersChange');
+            
+            if (monthlyListeners) {
+                monthlyListeners.textContent = DataProcessor.formatNumber(data.latestMetrics.monthlyListeners);
+                
+                const listenersChange = DataProcessor.calculateChange(
+                    data.latestMetrics.monthlyListeners,
+                    data.previousMetrics.monthlyListeners
+                );
+                this.updateChangeElement(monthlyListenersChange, listenersChange);
+            }
         }
     },
 
     // Update change element
     updateChangeElement(element, changePercent) {
+        if (!element) return;
+        
         if (changePercent > 0) {
             element.textContent = `+${changePercent}% vs 7 days ago`;
             element.className = 'metric-change positive';
@@ -355,28 +521,44 @@ const Dashboard = {
 
     // Update all charts
     updateCharts() {
-        this.updateFollowersChart();
-        this.updateYouTubeChart();
-        this.updatePopularityChart();
-        this.updateMonthlyListenersChart();
+        const availability = this.state.platformAvailability;
+        
+        if (availability.hasSpotify) {
+            this.updateFollowersChart();
+            this.updatePopularityChart();
+        }
+        
+        if (availability.hasYouTube) {
+            this.updateYouTubeChart();
+        }
+        
+        if (availability.hasMonthlyListeners) {
+            this.updateMonthlyListenersChart();
+        }
     },
 
     // Update followers chart
     updateFollowersChart() {
-        const ctx = document.getElementById('followersChart').getContext('2d');
+        const canvas = document.getElementById('followersChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
         const data = this.state.data;
 
         if (this.charts.followers) {
             this.charts.followers.destroy();
         }
 
+        // Filter out null values from the beginning
+        const filteredData = this.filterChartData(data.dates, data.spotifyFollowers);
+
         this.charts.followers = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.dates,
+                labels: filteredData.dates,
                 datasets: [{
                     label: 'Spotify Followers',
-                    data: data.spotifyFollowers,
+                    data: filteredData.values,
                     borderColor: '#1DB954',
                     backgroundColor: 'rgba(29, 185, 84, 0.1)',
                     borderWidth: 3,
@@ -405,21 +587,9 @@ const Dashboard = {
     updateYouTubeChart() {
         const data = this.state.data;
         const chartCard = document.getElementById('youtubeChartCard');
-        const noDataMsg = document.getElementById('youtubeNoData');
         const canvas = document.getElementById('youtubeChart');
 
-        if (!data.hasYouTubeData) {
-            canvas.style.display = 'none';
-            noDataMsg.style.display = 'block';
-            if (this.charts.youtube) {
-                this.charts.youtube.destroy();
-                this.charts.youtube = null;
-            }
-            return;
-        }
-
-        canvas.style.display = 'block';
-        noDataMsg.style.display = 'none';
+        if (!chartCard || !canvas) return;
 
         const ctx = canvas.getContext('2d');
 
@@ -427,14 +597,18 @@ const Dashboard = {
             this.charts.youtube.destroy();
         }
 
+        // Filter out null values from the beginning
+        const subscribersData = this.filterChartData(data.dates, data.youtubeSubscribers);
+        const viewsData = this.filterChartData(data.dates, data.youtubeTotalViews);
+
         this.charts.youtube = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.dates,
+                labels: subscribersData.dates,
                 datasets: [
                     {
                         label: 'Subscribers',
-                        data: data.youtubeSubscribers,
+                        data: subscribersData.values,
                         borderColor: '#FF0000',
                         backgroundColor: 'rgba(255, 0, 0, 0.1)',
                         borderWidth: 3,
@@ -449,7 +623,7 @@ const Dashboard = {
                     },
                     {
                         label: 'Total Views',
-                        data: data.youtubeTotalViews,
+                        data: viewsData.values,
                         borderColor: '#FF6B6B',
                         backgroundColor: 'rgba(255, 107, 107, 0.1)',
                         borderWidth: 3,
@@ -504,20 +678,26 @@ const Dashboard = {
 
     // Update popularity chart
     updatePopularityChart() {
-        const ctx = document.getElementById('popularityChart').getContext('2d');
+        const canvas = document.getElementById('popularityChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
         const data = this.state.data;
 
         if (this.charts.popularity) {
             this.charts.popularity.destroy();
         }
 
+        // Filter out null values from the beginning
+        const filteredData = this.filterChartData(data.dates, data.popularityScore);
+
         this.charts.popularity = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.dates,
+                labels: filteredData.dates,
                 datasets: [{
                     label: 'Popularity Score',
-                    data: data.popularityScore,
+                    data: filteredData.values,
                     borderColor: '#9B59B6',
                     backgroundColor: 'rgba(155, 89, 182, 0.1)',
                     borderWidth: 3,
@@ -553,30 +733,27 @@ const Dashboard = {
     updateMonthlyListenersChart() {
         const data = this.state.data;
         const chartCard = document.getElementById('monthlyListenersCard');
+        const canvas = document.getElementById('monthlyListenersChart');
 
-        if (!data.hasMonthlyListeners) {
-            chartCard.style.display = 'none';
-            if (this.charts.monthlyListeners) {
-                this.charts.monthlyListeners.destroy();
-                this.charts.monthlyListeners = null;
-            }
-            return;
-        }
+        if (!chartCard || !canvas) return;
 
         chartCard.style.display = 'block';
-        const ctx = document.getElementById('monthlyListenersChart').getContext('2d');
+        const ctx = canvas.getContext('2d');
 
         if (this.charts.monthlyListeners) {
             this.charts.monthlyListeners.destroy();
         }
 
+        // Filter out null values from the beginning
+        const filteredData = this.filterChartData(data.dates, data.monthlyListeners);
+
         this.charts.monthlyListeners = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.dates,
+                labels: filteredData.dates,
                 datasets: [{
                     label: 'Monthly Listeners',
-                    data: data.monthlyListeners,
+                    data: filteredData.values,
                     borderColor: '#3498DB',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
                     borderWidth: 3,
@@ -593,11 +770,36 @@ const Dashboard = {
         });
     },
 
+    // Filter chart data to remove leading null values
+    filterChartData(dates, values) {
+        // Find first non-null index
+        let firstValidIndex = -1;
+        for (let i = 0; i < values.length; i++) {
+            if (values[i] !== null && values[i] !== undefined) {
+                firstValidIndex = i;
+                break;
+            }
+        }
+
+        // If no valid data, return empty arrays
+        if (firstValidIndex === -1) {
+            return { dates: [], values: [] };
+        }
+
+        // Return filtered data starting from first valid point
+        return {
+            dates: dates.slice(firstValidIndex),
+            values: values.slice(firstValidIndex)
+        };
+    },
+
     // Update top tracks
     updateTopTracks() {
         const data = this.state.data;
         const tracksGrid = document.getElementById('tracksGrid');
         const tracksSection = document.getElementById('topTracksSection');
+
+        if (!tracksSection || !this.state.platformAvailability.hasSpotify) return;
 
         if (!data.topTracks || data.topTracks.length === 0) {
             tracksSection.style.display = 'none';
