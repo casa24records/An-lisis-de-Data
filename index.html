@@ -31,43 +31,9 @@
 
         <!-- Main Content -->
         <main class="dashboard-main">
-            <!-- Overview Cards -->
+            <!-- Overview Cards - Dynamic content will be inserted here -->
             <section class="metrics-grid stat-grid" id="metricsGrid">
-                <div class="metric-card stat-box">
-                    <h3>Spotify Followers</h3>
-                    <div class="stat-content">
-                        <div class="stat-dot" style="background: #1DB954"></div>
-                        <div class="metric-value stat-value" id="spotifyFollowers">--</div>
-                    </div>
-                    <div class="metric-change" id="spotifyFollowersChange">--</div>
-                </div>
-                <div class="metric-card stat-box">
-                    <h3>YouTube Subscribers</h3>
-                    <div class="stat-content">
-                        <div class="stat-dot" style="background: #FF0000"></div>
-                        <div class="metric-value stat-value" id="youtubeSubscribers">--</div>
-                    </div>
-                    <div class="metric-change" id="youtubeSubscribersChange">--</div>
-                </div>
-                <div class="metric-card stat-box">
-                    <h3>YouTube Total Views</h3>
-                    <div class="stat-content">
-                        <div class="stat-dot" style="background: #FF0000"></div>
-                        <div class="metric-value stat-value" id="youtubeTotalViews">--</div>
-                    </div>
-                    <div class="metric-change" id="youtubeTotalViewsChange">--</div>
-                </div>
-                <div class="metric-card stat-box">
-                    <h3>Popularity Score</h3>
-                    <div class="stat-content">
-                        <div class="stat-dot" style="background: #9B59B6"></div>
-                        <div class="metric-value stat-value">
-                            <span id="popularityScore">--</span>
-                            <span class="text-xl ml-1">/100</span>
-                        </div>
-                    </div>
-                    <div class="metric-change" id="popularityScoreChange">--</div>
-                </div>
+                <!-- Metric cards will be dynamically created based on available data -->
             </section>
 
             <!-- Time Range Selector -->
@@ -86,35 +52,32 @@
             <!-- Charts Section -->
             <section class="charts-grid">
                 <!-- Followers Growth Chart -->
-                <div class="chart-card stat-box">
+                <div class="chart-card stat-box platform-section" data-platform="spotify" data-chart="followers">
                     <h3 class="text-2xl font-bold mb-4">Followers Growth</h3>
                     <canvas id="followersChart"></canvas>
                 </div>
 
                 <!-- YouTube Metrics Chart -->
-                <div class="chart-card stat-box" id="youtubeChartCard">
+                <div class="chart-card stat-box platform-section" id="youtubeChartCard" data-platform="youtube" data-chart="youtube">
                     <h3 class="text-2xl font-bold mb-4">YouTube Performance</h3>
                     <canvas id="youtubeChart"></canvas>
-                    <div class="no-data-message" id="youtubeNoData" style="display: none;">
-                        <p>No YouTube data available for this artist</p>
-                    </div>
                 </div>
 
                 <!-- Popularity Trend Chart -->
-                <div class="chart-card stat-box">
+                <div class="chart-card stat-box platform-section" data-platform="spotify" data-chart="popularity">
                     <h3 class="text-2xl font-bold mb-4">Popularity Trend</h3>
                     <canvas id="popularityChart"></canvas>
                 </div>
 
-                <!-- Monthly Listeners Chart (if available) -->
-                <div class="chart-card stat-box" id="monthlyListenersCard" style="display: none;">
+                <!-- Monthly Listeners Chart -->
+                <div class="chart-card stat-box platform-section" id="monthlyListenersCard" data-platform="spotify" data-metric="monthly_listeners" style="display: none;">
                     <h3 class="text-2xl font-bold mb-4">Monthly Listeners</h3>
                     <canvas id="monthlyListenersChart"></canvas>
                 </div>
             </section>
 
             <!-- Top Tracks Section -->
-            <section class="top-tracks-section stat-box" id="topTracksSection">
+            <section class="top-tracks-section stat-box platform-section" id="topTracksSection" data-platform="spotify" data-feature="tracks">
                 <h3 class="text-2xl font-bold mb-4">Top Tracks</h3>
                 <div class="tracks-grid" id="tracksGrid">
                     <!-- Tracks will be populated dynamically -->
