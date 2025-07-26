@@ -15,7 +15,7 @@ const Dashboard = {
         data: null
     },
 
-    // Chart.js default configuration
+    // Chart.js default configuration - Updated to match retro theme
     chartDefaults: {
         responsive: true,
         maintainAspectRatio: false,
@@ -26,21 +26,30 @@ const Dashboard = {
         plugins: {
             legend: {
                 labels: {
-                    color: '#b4b4b4',
+                    color: '#e0e0e0',
                     padding: 15,
                     font: {
+                        family: "'Space Mono', monospace",
                         size: 12
                     }
                 }
             },
             tooltip: {
-                backgroundColor: 'rgba(26, 26, 46, 0.95)',
-                borderColor: '#2a2a3e',
-                borderWidth: 1,
+                backgroundColor: 'rgba(26, 26, 26, 0.95)',
+                borderColor: '#00a651',
+                borderWidth: 2,
                 titleColor: '#ffffff',
-                bodyColor: '#b4b4b4',
+                bodyColor: '#e0e0e0',
                 padding: 12,
                 displayColors: true,
+                titleFont: {
+                    family: "'VT323', monospace",
+                    size: 16
+                },
+                bodyFont: {
+                    family: "'Space Mono', monospace",
+                    size: 12
+                },
                 callbacks: {
                     label: function(context) {
                         let label = context.dataset.label || '';
@@ -65,23 +74,31 @@ const Dashboard = {
                     }
                 },
                 grid: {
-                    color: 'rgba(42, 42, 62, 0.5)',
+                    color: 'rgba(224, 224, 224, 0.1)',
                     drawBorder: false
                 },
                 ticks: {
-                    color: '#b4b4b4',
+                    color: '#e0e0e0',
                     maxRotation: 45,
-                    minRotation: 45
+                    minRotation: 45,
+                    font: {
+                        family: "'Space Mono', monospace",
+                        size: 10
+                    }
                 }
             },
             y: {
                 beginAtZero: true,
                 grid: {
-                    color: 'rgba(42, 42, 62, 0.5)',
+                    color: 'rgba(224, 224, 224, 0.1)',
                     drawBorder: false
                 },
                 ticks: {
-                    color: '#b4b4b4',
+                    color: '#e0e0e0',
+                    font: {
+                        family: "'Space Mono', monospace",
+                        size: 10
+                    },
                     callback: function(value) {
                         return DataProcessor.formatNumber(value);
                     }
@@ -95,6 +112,9 @@ const Dashboard = {
         try {
             // Show loading overlay
             this.showLoading(true);
+
+            // Add animation styles
+            this.injectAnimationStyles();
 
             // Load data
             await DataProcessor.loadHistoricalData();
@@ -125,6 +145,69 @@ const Dashboard = {
         }
     },
 
+    // Inject custom animation styles
+    injectAnimationStyles() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            /* Smooth transitions for all interactive elements */
+            .stat-box {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .stat-box:hover {
+                transform: translateY(-2px);
+                box-shadow: 6px 6px 0px #00a651 !important;
+            }
+            
+            /* Consistent stat value styling */
+            .stat-value {
+                font-variant-numeric: tabular-nums;
+                letter-spacing: -0.02em;
+            }
+            
+            /* Fix alignment for all stat boxes */
+            .stat-content {
+                display: flex;
+                align-items: center;
+                height: 36px;
+            }
+            
+            .stat-dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 8px;
+                flex-shrink: 0;
+            }
+            
+            /* Section transitions */
+            .fade-in {
+                animation: fadeIn 0.4s ease-out;
+            }
+            
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    },
+
+    // Format artist names with proper spacing
+    formatArtistName(name) {
+        // Special case for Casa 24Beats
+        if (name === 'Casa 24Beats') {
+            return 'Casa 24 Beats';
+        }
+        return name;
+    },
+
     // Populate artist dropdown
     populateArtistDropdown() {
         const select = document.getElementById('artistSelect');
@@ -134,7 +217,7 @@ const Dashboard = {
         artists.forEach(artist => {
             const option = document.createElement('option');
             option.value = artist;
-            option.textContent = artist;
+            option.textContent = this.formatArtistName(artist);
             select.appendChild(option);
         });
     },
@@ -162,6 +245,11 @@ const Dashboard = {
         this.state.currentArtist = artistName;
         this.state.data = DataProcessor.processArtistData(artistName, this.state.currentTimeRange);
         
+        // Add fade-in animation
+        const main = document.querySelector('.dashboard-main');
+        main.classList.add('fade-in');
+        setTimeout(() => main.classList.remove('fade-in'), 400);
+
         this.updateMetricsCards();
         this.updateCharts();
         this.updateTopTracks();
@@ -291,11 +379,13 @@ const Dashboard = {
                     data: data.spotifyFollowers,
                     borderColor: '#1DB954',
                     backgroundColor: 'rgba(29, 185, 84, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     tension: 0.4,
                     pointRadius: 0,
                     pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#1DB954',
+                    pointHoverBorderColor: '#1DB954',
+                    pointHoverBorderWidth: 2,
                     spanGaps: true
                 }]
             },
@@ -347,11 +437,13 @@ const Dashboard = {
                         data: data.youtubeSubscribers,
                         borderColor: '#FF0000',
                         backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 3,
                         tension: 0.4,
                         pointRadius: 0,
                         pointHoverRadius: 6,
                         pointHoverBackgroundColor: '#FF0000',
+                        pointHoverBorderColor: '#FF0000',
+                        pointHoverBorderWidth: 2,
                         yAxisID: 'y',
                         spanGaps: true
                     },
@@ -360,11 +452,13 @@ const Dashboard = {
                         data: data.youtubeTotalViews,
                         borderColor: '#FF6B6B',
                         backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 3,
                         tension: 0.4,
                         pointRadius: 0,
                         pointHoverRadius: 6,
                         pointHoverBackgroundColor: '#FF6B6B',
+                        pointHoverBorderColor: '#FF6B6B',
+                        pointHoverBorderWidth: 2,
                         yAxisID: 'y1',
                         spanGaps: true
                     }
@@ -380,7 +474,11 @@ const Dashboard = {
                         title: {
                             display: true,
                             text: 'Subscribers',
-                            color: '#b4b4b4'
+                            color: '#e0e0e0',
+                            font: {
+                                family: "'Space Mono', monospace",
+                                size: 12
+                            }
                         }
                     },
                     y1: {
@@ -389,7 +487,11 @@ const Dashboard = {
                         title: {
                             display: true,
                             text: 'Total Views',
-                            color: '#b4b4b4'
+                            color: '#e0e0e0',
+                            font: {
+                                family: "'Space Mono', monospace",
+                                size: 12
+                            }
                         },
                         grid: {
                             drawOnChartArea: false
@@ -418,11 +520,13 @@ const Dashboard = {
                     data: data.popularityScore,
                     borderColor: '#9B59B6',
                     backgroundColor: 'rgba(155, 89, 182, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     tension: 0.4,
                     pointRadius: 0,
                     pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#9B59B6',
+                    pointHoverBorderColor: '#9B59B6',
+                    pointHoverBorderWidth: 2,
                     spanGaps: true
                 }]
             },
@@ -475,11 +579,13 @@ const Dashboard = {
                     data: data.monthlyListeners,
                     borderColor: '#3498DB',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     tension: 0.4,
                     pointRadius: 0,
                     pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#3498DB',
+                    pointHoverBorderColor: '#3498DB',
+                    pointHoverBorderWidth: 2,
                     spanGaps: true
                 }]
             },
@@ -537,6 +643,12 @@ const Dashboard = {
         const overlay = document.getElementById('loadingOverlay');
         if (show) {
             overlay.classList.remove('hidden');
+            // Update loading text to match main dashboard style
+            const loadingText = overlay.querySelector('p');
+            loadingText.innerHTML = `
+                <div class="text-2xl font-bold mb-2" style="color: #00a651; font-family: 'VT323', monospace;">LOADING VIBES...</div>
+                <div class="text-sm text-gray-400">Dusting off the vinyl records...</div>
+            `;
         } else {
             overlay.classList.add('hidden');
         }
